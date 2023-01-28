@@ -3,12 +3,14 @@ from copy import deepcopy
 from random import choice, randrange
 
 W, H = 10, 20
-TILE = 45
+TILE = 30
 GAME_RES = W * TILE, H * TILE
+RES = 500, 650
 FPS = 60
 
 pygame.init()
-game_sc = pygame.display.set_mode(GAME_RES)
+sc = pygame.display.set_mode(RES)
+game_sc = pygame.Surface(GAME_RES)
 clock = pygame.time.Clock()
 
 grid = [pygame.Rect(x * TILE, y * TILE, TILE, TILE) for x in range(W) for y in range(H)]
@@ -28,6 +30,11 @@ field = [[0 for i in range(W)] for j in range(H)]
 anim_count, anim_speed, anim_limit = 0, 60, 2000
 figure  = deepcopy(choice(figures))
 
+bg = pygame.image.load('./assets/background.png').convert()
+
+get_color = lambda : (randrange(30, 256), randrange(30, 256), randrange(30, 256))
+color = get_color()
+
 def check_borders():
     if figure[i].x < 0 or figure[i].x > W - 1:
         return False
@@ -37,6 +44,8 @@ def check_borders():
 
 while True:
     dx, rotate = 0, False
+    sc.blit(bg, (0, 0))
+    sc.blit(game_sc, (20, 20))
     game_sc.fill(pygame.Color('black'))
 
     # controls
@@ -70,7 +79,8 @@ while True:
             figure[i].y += 1
             if not check_borders():
                 for i in range(4):
-                    field[figure_old[i].y][figure_old[i].x] = pygame.Color('white')
+                    field[figure_old[i].y][figure_old[i].x] = color
+                color = get_color()
                 figure = deepcopy(choice(figures))
                 anim_limit = 2000
                 break
@@ -88,6 +98,17 @@ while True:
                 figure = deepcopy(figure_old)
                 break
 
+    # check lines
+    line = H - 1
+    for row in range(H - 1, -1, -1):
+        count = 0
+        for i in range(W):
+            if field[row][i]:
+                count += 1
+            field[line][i] = field[row][i]
+        if count < W:
+            line -= 1
+
     # draw grid
     [pygame.draw.rect(game_sc, (40, 40, 40), i_rect, 1) for i_rect in grid]
 
@@ -95,7 +116,7 @@ while True:
     for i in range(4):
         figure_rect.x = figure[i].x * TILE
         figure_rect.y = figure[i].y * TILE
-        pygame.draw.rect(game_sc, pygame.Color('white'), figure_rect)
+        pygame.draw.rect(game_sc, color, figure_rect)
 
     # draw field
     for y, raw in enumerate(field):
