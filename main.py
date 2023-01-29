@@ -5,7 +5,7 @@ from random import choice, randrange
 W, H = 10, 20
 TILE = 30
 GAME_RES = W * TILE, H * TILE
-RES = 500, 650
+RES = 610, 640
 FPS = 60
 
 pygame.init()
@@ -28,12 +28,21 @@ figure_rect = pygame.Rect(0, 0, TILE - 2, TILE - 2)
 field = [[0 for i in range(W)] for j in range(H)]
 
 anim_count, anim_speed, anim_limit = 0, 60, 2000
-figure  = deepcopy(choice(figures))
 
-bg = pygame.image.load('./assets/background.png').convert()
+bg = pygame.image.load('./assets/images/background.jpg').convert()
+
+main_font = pygame.font.Font('./assets/font/font.ttf', 65)
+font = pygame.font.Font('./assets/font/font.ttf', 45)
+
+title_tetris = main_font.render('TETRIS', True, pygame.Color('darkorange'))
 
 get_color = lambda : (randrange(30, 256), randrange(30, 256), randrange(30, 256))
-color = get_color()
+
+figure, next_figure = deepcopy(choice(figures)), deepcopy(choice(figures))
+color, next_color = get_color(), get_color()
+
+scores, lines = 0, 0
+scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}
 
 def check_borders():
     if figure[i].x < 0 or figure[i].x > W - 1:
@@ -80,8 +89,8 @@ while True:
             if not check_borders():
                 for i in range(4):
                     field[figure_old[i].y][figure_old[i].x] = color
-                color = get_color()
-                figure = deepcopy(choice(figures))
+                figure, color = next_figure, next_color
+                next_figure, next_color = deepcopy(choice(figures)), get_color()
                 anim_limit = 2000
                 break
 
@@ -124,6 +133,15 @@ while True:
             if col:
                 figure_rect.x, figure_rect.y = x * TILE, y * TILE
                 pygame.draw.rect(game_sc, col, figure_rect)
+
+    # draw next figure
+    for i in range(4):
+        figure_rect.x = next_figure[i].x * TILE + 320
+        figure_rect.y = next_figure[i].y * TILE + 150
+        pygame.draw.rect(sc, next_color, figure_rect)
+
+    # draw titles
+    sc.blit(title_tetris, (330, 20))
 
     pygame.display.flip()
     clock.tick(FPS)
