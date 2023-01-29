@@ -58,7 +58,7 @@ def get_record():
         with open('record') as f:
             return f.readline()
     except FileNotFoundError:
-        with open('record') as f:
+        with open('record', 'w') as f:
             f.write('0')
 
 def set_record(record, score):
@@ -168,8 +168,23 @@ while True:
 
     # draw titles
     sc.blit(title_tetris, (330, 20))
-    sc.blit(title_score, (390, 400))
-    sc.blit(font.render(str(score), True, pygame.Color('white')), (430, 450))    
+    sc.blit(title_score, (390, 350))
+    sc.blit(font.render(str(score), True, pygame.Color('white')), (435, 400))    
+    sc.blit(title_record, (390, 500))
+    sc.blit(font.render(record, True, pygame.Color('gold')), (430, 550))
+
+    # game over
+    for i in range(W):
+        if field[0][i]:
+            set_record(record, score)
+            field = [[0 for i in range(W)] for i in range(H)]
+            anim_count, anim_speed, anim_limit = 0, 60, 2000
+            score = 0
+            for i_rect in grid:
+                pygame.draw.rect(game_sc, get_color(), i_rect)
+                sc.blit(game_sc, (20, 20))
+                pygame.display.flip()
+                clock.tick(200)
 
     pygame.display.flip()
     clock.tick(FPS)
